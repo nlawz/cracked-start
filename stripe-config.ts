@@ -5,32 +5,44 @@ const PUBLIC_URL = process.env.NEXT_PUBLIC_WEBSITE_URL ?? "http://localhost:3000
 const currencyType = 'usd'
 const plans = [
     {
-        'name': 'Basic-Test',
-        'price': 1000, // price in cents, use 0 for free 
-        'features': [
+        name: "Free",
+        price: 0, // price in cents, use 0 for free
+        features: [
             // This will be used to list the features that will show up on the pricing table
-            { name: 'Upto 10 users' },
-            { name: 'Upto 1000 records' },
-            { name: 'Upto 1000 API calls' }
-        ]
+            { name: "Upto 5 users" },
+            { name: "Upto 100 records" },
+            { name: "Upto 1000 API calls" },
+        ],
     },
     {
-        'name': 'Pro-Test',
-        'price': 2000,
-        'features': [
-            { name: 'Upto 100 users' },
-            { name: 'Upto 10000 records' },
-            { name: 'Upto 10000 API calls' }
-        ]
+        name: "Basic-Test",
+        price: 1000, // price in cents, use 0 for free
+        features: [
+            // This will be used to list the features that will show up on the pricing table
+            { name: "Upto 10 users" },
+            { name: "Upto 1000 records" },
+            { name: "Upto 1000 API calls" },
+        ],
     },
     {
-        'name': 'Enterprise-Test', 'price': 5000, 'features': [
-            { name: 'Unlimited users' },
-            { name: 'Unlimited records' },
-            { name: 'Unlimited API calls' }
-        ]
-    }
-]
+        name: "Pro-Test",
+        price: 2000,
+        features: [
+            { name: "Upto 100 users" },
+            { name: "Upto 10000 records" },
+            { name: "Upto 10000 API calls" },
+        ],
+    },
+    {
+        name: "Enterprise-Test",
+        price: 5000,
+        features: [
+            { name: "Unlimited users" },
+            { name: "Unlimited records" },
+            { name: "Unlimited API calls" },
+        ],
+    },
+];
 
 // Create products and prices sequentially
 async function setupProducts() {
