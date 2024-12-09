@@ -4,8 +4,57 @@ import { redirect } from "next/navigation"
 import { revalidatePath } from 'next/cache'
 import { createStripeCustomer } from '@/utils/stripe/api'
 import { db } from '@/utils/db/db'
-import { usersTable } from '@/utils/db/schema'
-const PUBLIC_URL = process.env.NEXT_PUBLIC_WEBSITE_URL ? process.env.NEXT_PUBLIC_WEBSITE_URL : "http://localhost:3000"
+import { account, workspace, profile } from '@/utils/db/schema'
+import { eq } from 'drizzle-orm'
+
+const PUBLIC_URL = process.env.NEXT_PUBLIC_WEBSITE_URL ?? "http://localhost:3000"
+
+// Helper function to create initial workspace setup
+async function createInitialWorkspace(email: string) {
+    // Add logging
+    console.log("Starting workspace creation");
+
+    // Create Stripe customer
+    const stripeId = await createStripeCustomer("", email, "");
+    console.log("Stripe customer created:", stripeId);
+
+    // Create workspace
+    const [newWorkspace] = await db
+        .insert(workspace)
+        .values({
+            name: `${email.split("@")[0]}'s Workspace`,
+            plan: "free",
+            stripeId,
+        })
+        .returning();
+
+    console.log("Workspace created:", newWorkspace);
+    return newWorkspace;
+}
+
+async function getOrCreateAccount(email: string) {
+    // Add logging
+    console.log("Looking for existing account");
+
+    // Try to find existing account
+    const existingAccount = await db
+        .select()
+        .from(account)
+        .where(eq(account.email, email))
+        .limit(1);
+
+    if (existingAccount.length > 0) {
+        console.log("Found existing account");
+        return existingAccount[0];
+    }
+
+    console.log("Creating new account");
+    // Create new account if none exists
+    const [newAccount] = await db.insert(account).values({ email }).returning();
+
+    return newAccount;
+}
+
 export async function resetPassword(currentState: { message: string }, formData: FormData) {
 
     const supabase = createClient()
@@ -44,32 +93,22 @@ export async function forgotPassword(currentState: { message: string }, formData
 }
 export async function signup(currentState: { message: string }, formData: FormData) {
     const supabase = createClient()
+    console.log("Starting signup with redirect URL:", `${process.env.NEXT_PUBLIC_WEBSITE_URL}/auth/callback`);
 
-    const data = {
+    const { error } = await supabase.auth.signUp({
         email: formData.get('email') as string,
         password: formData.get('password') as string,
-    }
-
-    const { error } = await supabase.auth.signUp(data)
+        options: {
+            emailRedirectTo: `${process.env.NEXT_PUBLIC_WEBSITE_URL}/auth/callback`,
+        }
+    })
 
     if (error) {
+        console.error('Signup error:', error);
         return { message: error.message }
     }
 
-    if (error) {
-        redirect('/error')
-    }
-
-    const {
-        data: { user },
-    } = await supabase.auth.getUser()
-    // create Stripe Customer Record
-    const stripeID = await createStripeCustomer(user!.id, user!.email!, "")
-    // Create record in DB
-    await db.insert(usersTable).values({ name: "", email: user!.email!, stripe_id: stripeID, plan: 'none' })
-
-    revalidatePath('/', 'layout')
-    redirect('/subscribe')
+    return { message: 'Please check your email for a confirmation link before signing in.' }
 }
 
 export async function loginUser(currentState: { message: string }, formData: FormData) {

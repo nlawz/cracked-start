@@ -4,7 +4,7 @@ import { Inter } from "next/font/google";
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from "next/navigation"
 import { db } from '@/utils/db/db'
-import { usersTable } from '@/utils/db/schema'
+import { account, profile, workspace } from '@/utils/db/schema'
 import { eq } from "drizzle-orm";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -13,6 +13,23 @@ export const metadata: Metadata = {
     title: "SAAS Starter Kit",
     description: "SAAS Starter Kit with Stripe, Supabase, Postgres",
 };
+
+async function getUserWorkspaceAccess(email: string) {
+    // Get account and associated profiles with workspaces
+    const userAccess = await db
+        .select({
+            account: account,
+            profile: profile,
+            workspace: workspace
+        })
+        .from(account)
+        .where(eq(account.email, email))
+        .innerJoin(profile, eq(profile.accountId, account.id))
+        .innerJoin(workspace, eq(workspace.id, profile.workspaceId))
+        .limit(1);
+
+    return userAccess[0];
+}
 
 export default async function DashboardLayout({
     children,
@@ -25,26 +42,26 @@ export default async function DashboardLayout({
         data: { user },
     } = await supabase.auth.getUser()
 
-    if (!user) {
+    if (!user?.email) {
         redirect('/login')
     }
 
     try {
-        // Add retry logic for checking the plan
+        // Add retry logic for checking workspace access
         let attempts = 0;
         const maxAttempts = 3;
         
         while (attempts < maxAttempts) {
-            const checkUserInDB = await db.select()
-                .from(usersTable)
-                .where(eq(usersTable.email, user.email!));
+            const userAccess = await getUserWorkspaceAccess(user.email);
 
-            if (checkUserInDB.length > 0) {
-                if (checkUserInDB[0].plan !== "none") {
-                    // User has a plan, render the dashboard
+            if (userAccess) {
+                const { workspace: currentWorkspace } = userAccess;
+                
+                if (currentWorkspace.plan !== "free") {
+                    // User has access to a paid workspace, render the dashboard
                     return (
                         <html lang="en">
-                            <body>
+                            <body className={inter.className}>
                                 <DashboardHeader />
                                 <main className="container mx-auto px-4 py-8">
                                     {children}
@@ -69,7 +86,7 @@ export default async function DashboardLayout({
         // Fallback redirect
         redirect('/subscribe');
     } catch (error) {
-        console.error('Error checking user plan:', error);
+        console.error('Error checking workspace access:', error);
         redirect('/subscribe');
     }
 }
