@@ -1,4 +1,4 @@
-![Landing screenshot](https://start.crack.build/screenshot.png)
+![Landing screenshot](https://crack.build/hero-start.png)
 
 # Next.js SaaS Starter Kit  
 
