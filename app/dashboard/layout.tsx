@@ -10,8 +10,8 @@ import { eq } from "drizzle-orm";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-    title: "SAAS Starter Kit",
-    description: "SAAS Starter Kit with Stripe, Supabase, Postgres",
+    title: "cracked starter",
+    description: "Starter Kit with Next.js, Stripe, Supabase, Postgres",
 };
 
 async function getUserWorkspaceAccess(email: string) {
@@ -59,16 +59,14 @@ export default async function DashboardLayout({
                 
                 if (currentWorkspace.plan !== "free") {
                     // User has access to a paid workspace, render the dashboard
-                    return (
-                        <html lang="en">
-                            <body className={inter.className}>
-                                <DashboardHeader />
-                                <main className="container mx-auto px-4 py-8">
-                                    {children}
-                                </main>
-                            </body>
-                        </html>
-                    );
+                   return (
+                       <>
+                           <DashboardHeader />
+                           <main className="container mx-auto px-4 py-8">
+                               {children}
+                           </main>
+                       </>
+                   );
                 }
                 
                 // If coming from successful subscription, wait and retry
