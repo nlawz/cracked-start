@@ -1,6 +1,7 @@
 CREATE TABLE IF NOT EXISTS "account" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"email" text NOT NULL,
+	"created_at" timestamp DEFAULT now() NOT NULL,
 	CONSTRAINT "account_email_unique" UNIQUE("email")
 );
 --> statement-breakpoint
@@ -8,15 +9,18 @@ CREATE TABLE IF NOT EXISTS "profile" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"name" text NOT NULL,
 	"basic_info" text,
+	"role" text DEFAULT 'member' NOT NULL,
 	"account_id" serial NOT NULL,
-	"workspace_id" serial NOT NULL
+	"workspace_id" serial NOT NULL,
+	"created_at" timestamp DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "workspace" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"name" text NOT NULL,
 	"plan" text NOT NULL,
-	"stripe_id" text NOT NULL
+	"stripe_id" text NOT NULL,
+	"created_at" timestamp DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
 DO $$ BEGIN

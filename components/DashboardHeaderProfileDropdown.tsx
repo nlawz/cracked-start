@@ -18,6 +18,7 @@ export default async function DashboardHeaderProfileDropdown() {
     const supabase = createClient()
     const { data: { user }, error } = await supabase.auth.getUser()
     const billingPortalURL = await generateStripeBillingPortalLink(user!.email!)
+    
     return (
         <nav className="flex items-center">
             <Button variant="ghost" size="icon" className="mr-2">
@@ -34,36 +35,36 @@ export default async function DashboardHeaderProfileDropdown() {
                 <DropdownMenuContent align="end">
                     <DropdownMenuLabel>My Account</DropdownMenuLabel>
                     <DropdownMenuSeparator />
-                    <Link href="#">
-                        <DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                        <Link href="#">
                             <User className="mr-2 h-4 w-4" />
                             <span>Profile</span>
-                        </DropdownMenuItem>
-                    </Link>
-                    <Link href="/forgot-password">
-                        <DropdownMenuItem>
+                        </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                        <Link href="/forgot-password">
                             <Settings className="mr-2 h-4 w-4" />
                             <span>Settings</span>
-                        </DropdownMenuItem>
-                    </Link>
-                    <Link href="#">
-                        <DropdownMenuItem>
+                        </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                        <Link href={billingPortalURL}>
                             <ReceiptText className="mr-2 h-4 w-4" />
-                            <Link href={billingPortalURL}>Billing</Link>
-                        </DropdownMenuItem>
-                    </Link>
-                    <Link href="#">
-                        <DropdownMenuItem>
+                            <span>Billing</span>
+                        </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                        <Link href="#">
                             <HelpCircle className="mr-2 h-4 w-4" />
                             <span>Help</span>
-                        </DropdownMenuItem>
-                    </Link>
+                        </Link>
+                    </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem>
                         <form action={logout} className="w-full">
-                            <button type="submit" className="w-full flex" >
+                            <button type="submit" className="w-full flex">
                                 <LogOut className="mr-2 h-4 w-4" />
-                                <span > Log out</span>
+                                <span>Log out</span>
                             </button>
                         </form>
                     </DropdownMenuItem>

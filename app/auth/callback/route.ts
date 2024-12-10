@@ -1,48 +1,91 @@
 import { NextResponse } from 'next/server'
-// The client you created from the Server-Side Auth instructions
 import { createClient } from '@/utils/supabase/server'
 import { createStripeCustomer } from '@/utils/stripe/api'
 import { db } from '@/utils/db/db'
-import { usersTable } from '@/utils/db/schema'
-import { eq } from "drizzle-orm";
+import { account, workspace, profile } from '@/utils/db/schema'
+import { eq } from "drizzle-orm"
+
+async function getOrCreateAccount(email: string) {
+    if (!account || !account.email) {
+        console.error("Schema validation failed:", { account });
+        throw new Error("Invalid schema configuration");
+    }
+
+    console.log("Schema check:", { 
+        accountSchema: account,
+        workspaceSchema: workspace,
+        profileSchema: profile 
+    });
+
+    const existingAccount = await db
+        .select()
+        .from(account)
+        .where(eq(account.email, email))
+        .limit(1)
+
+    if (existingAccount.length > 0) {
+        return existingAccount[0]
+    }
+
+    const [newAccount] = await db
+        .insert(account)
+        .values({ email })
+        .returning()
+
+    return newAccount
+}
 
 export async function GET(request: Request) {
+    console.log("Callback route hit with URL:", request.url);
     const { searchParams, origin } = new URL(request.url)
     const code = searchParams.get('code')
-    // if "next" is in param, use it as the redirect URL
-    const next = searchParams.get('next') ?? '/'
+    console.log("Code received:", code);
 
     if (code) {
         const supabase = createClient()
-        const { error } = await supabase.auth.exchangeCodeForSession(code)
-        if (!error) {
-            const {
-                data: { user },
-            } = await supabase.auth.getUser()
-
-            // check to see if user already exists in db
-            const checkUserInDB = await db.select().from(usersTable).where(eq(usersTable.email, user!.email!))
-            const isUserInDB = checkUserInDB.length > 0 ? true : false
-            if (!isUserInDB) {
-                // create Stripe customers
-                const stripeID = await createStripeCustomer(user!.id, user!.email!, user!.user_metadata.full_name)
-                // Create record in DB
-                await db.insert(usersTable).values({ name: user!.user_metadata.full_name, email: user!.email!, stripe_id: stripeID, plan: 'none' })
-            }
-
-            const forwardedHost = request.headers.get('x-forwarded-host') // original origin before load balancer
-            const isLocalEnv = process.env.NODE_ENV === 'development'
-            if (isLocalEnv) {
-                // we can be sure that there is no load balancer in between, so no need to watch for X-Forwarded-Host
-                return NextResponse.redirect(`${origin}${next}`)
-            } else if (forwardedHost) {
-                return NextResponse.redirect(`https://${forwardedHost}${next}`)
-            } else {
-                return NextResponse.redirect(`${origin}${next}`)
+        console.log("Exchanging code for session...");
+        const { data: { user }, error } = await supabase.auth.exchangeCodeForSession(code)
+        
+        if (error) {
+            console.error("Session exchange error:", error);
+        }
+        
+        if (!error && user?.email) {
+            try {
+                console.log("Starting account creation for user:", user.email);
+                const userAccount = await getOrCreateAccount(user.email)
+                console.log("Account created:", userAccount);
+                
+                const stripeId = await createStripeCustomer("", user.email, user.email.split('@')[0])
+                console.log("Stripe customer created:", stripeId);
+                
+                const [userWorkspace] = await db
+                    .insert(workspace)
+                    .values({
+                        name: `${user.email.split('@')[0]}'s Workspace`,
+                        plan: 'free',
+                        stripeId,
+                    })
+                    .returning()
+                console.log("Workspace created:", userWorkspace);
+                
+                await db.insert(profile).values({
+                    name: user.email.split('@')[0],
+                    basicInfo: '',
+                    role: 'owner',
+                    accountId: userAccount.id,
+                    workspaceId: userWorkspace.id,
+                })
+                console.log("Profile created, setup complete");
+                
+                return NextResponse.redirect(`${origin}/dashboard`)
+            } catch (error) {
+                console.error('Detailed error:', error)
+                return NextResponse.redirect(`${origin}/error`)
             }
         }
     }
 
-    // return the user to an error page with instructions
+    console.log("No code found or invalid request");
     return NextResponse.redirect(`${origin}/auth/auth-code-error`)
 }
