@@ -7,6 +7,25 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
   title: "Next.js Supabase Starter",
   description: "The only boilerplate you need.",
+  openGraph: {
+    title: "Next.js Supabase Starter",
+    description: "The only boilerplate you need.",
+    images: [
+      {
+        url: '/hero-start.png',
+        width: 1200,
+        height: 630,
+        alt: 'Next.js Supabase Starter',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: "Next.js Supabase Starter",
+    description: "The only boilerplate you need.",
+    images: ['/hero-start.png'],
+    creator: '@nlawz_', // Optional: add your Twitter username
+  },
 };
 
 export default function RootLayout({
