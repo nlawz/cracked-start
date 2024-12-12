@@ -18,7 +18,7 @@ const navigation = [
                 href: "https://crack.dev",
                 external: true,
             },
-            { title: "Manifesto", href: "/manifesto" },
+            { title: "Manifesto", href: "/" },
         ],
     },
     {
@@ -75,14 +75,14 @@ export function Footer() {
           <div className="flex items-center gap-2">
             <LogoIcon className="w-6 h-6" />
             <h1 className="bg-gradient-to-br text-transparent text-balance bg-gradient-stop bg-clip-text from-black/70 via-black/70 via-40% to-black/30 text-2xl">
-              crack.dev
+              crack.build
             </h1>
           </div>
           <div className="mt-8 text-sm font-normal leading-6 text-black/60">
             Build products faster.
           </div>
           <div className="text-sm font-normal leading-6 text-black/40">
-            cracked labs {new Date().getUTCFullYear()}
+            crack.dev {new Date().getUTCFullYear()}
           </div>
         </div>
 
