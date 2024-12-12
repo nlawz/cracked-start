@@ -108,7 +108,7 @@ export function NavBar() {
                 },
                 {
                     title: "Join the community",
-                    path: "/discord",
+                    path: "/",
                     icon: <MessageCircleCode size={19} />,
                 },
                 {
