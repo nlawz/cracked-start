@@ -59,8 +59,16 @@ export async function POST(request: Request) {
                 const subscription = event.data.object as Stripe.Subscription;
                 const customerId = subscription.customer as string;
                 
-                // Get the plan from the subscription
-                const plan = subscription.items.data[0].price.lookup_key || 'pro';
+                // Get the price details
+                const priceId = subscription.items.data[0].price.id;
+                const price = await stripe.prices.retrieve(priceId);
+                
+                // Get the product details
+                const productId = price.product as string;
+                const product = await stripe.products.retrieve(productId);
+                
+                // Use the product name or ID as the plan (consistent with creation logic)
+                const plan = product.name.toLowerCase().replace(/\s+/g, '-');
 
                 await db.update(workspace)
                     .set({ 
@@ -68,7 +76,7 @@ export async function POST(request: Request) {
                     })
                     .where(eq(workspace.stripeId, customerId));
 
-                console.log('Subscription update processed');
+                console.log('Subscription update processed for plan:', plan);
                 break;
             }
 
