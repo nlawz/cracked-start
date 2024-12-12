@@ -193,15 +193,15 @@ Make sure you have the following installed:
    ```
 4. Listen for webhooks
    ```bash
-   stripe listen --forward-to localhost:3000/api/webhooks
+   stripe listen --forward-to localhost:3000/webhook/stripe
    ```
 
 ## Set up Supabase locally
 ### 1. Initialize Supabase
-  In your project directory, run: (make sure Docker Desktop is running)
-  ```bash
-  supabase init
-  ```
+In your project directory, run: (make sure Docker Desktop is running)
+```bash
+supabase init
+```
 ### Launch Supabase
 ```bash
 supabase start
