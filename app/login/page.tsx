@@ -12,10 +12,13 @@ import Image from "next/image";
 
 import ProviderSigninBlock from "@/components/ProviderSigninBlock";
 import LoginForm from "@/components/LoginForm";
+import { AuthError } from "@/components/AuthError";
+
 export default function Login() {
   return (
     <div className="flex items-center justify-center bg-muted min-h-screen">
       <Card className="w-[350px] mx-auto">
+        <AuthError />
         <CardHeader className="space-y-1">
           <div className="flex justify-center py-4">
             <Link href="/">

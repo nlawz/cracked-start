@@ -36,9 +36,22 @@ async function getOrCreateAccount(email: string) {
 }
 
 export async function GET(request: Request) {
-    console.log("Callback route hit with URL:", request.url);
     const { searchParams, origin } = new URL(request.url)
     const code = searchParams.get('code')
+    const error = searchParams.get('error')
+    
+    // Handle OAuth error case first
+    if (error) {
+        const errorDescription = searchParams.get('error_description')
+        if (errorDescription?.includes('Multiple accounts')) {
+            return NextResponse.redirect(
+                `${origin}/login?error=email_exists&message=${encodeURIComponent('This email is already associated with an account. Please sign in using your existing account method.')}`
+            )
+        }
+        return NextResponse.redirect(`${origin}/auth/auth-code-error`)
+    }
+
+    console.log("Callback route hit with URL:", request.url);
     console.log("Code received:", code);
 
     if (code) {
